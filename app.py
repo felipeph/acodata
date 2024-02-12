@@ -6,7 +6,6 @@ import streamlit as st
 from functions.style import css_hacks
 from functions.style import page_elements
 from functions.content import sticky_logo, header_builder, reliability_box_builder, sensor_image_box_builder
-from functions.visualization import reliability_plot_builder
 
 
 # Setting the page configuration

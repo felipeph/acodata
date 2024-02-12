@@ -11,7 +11,7 @@ def insert_acodata_one(column):
     None
     """
     with column:
-        st.markdown(f'<div align="center"><h1 style="color:#2A4B80; display: inline;"><span style="font-size: 1em;">ACODATA®</span><span style="font-size: 0.6em;">one</span></h1><h5 style="color:#2A4B80; ">ASSET MONITORING</h5></div>', unsafe_allow_html=True)
+        st.markdown(f'<div align="center"><h1 style="color:#2A4B80; display: inline;"><span style="font-size: 1em;">ACODATA®</span><span style="font-size: 0.6em;">one</span></h1><h5 style="color:#2A4B80; ">MONITORAMENTO DE ATIVOS</h5></div>', unsafe_allow_html=True)
     return None
 
 def insert_client_name(column, client_name):
