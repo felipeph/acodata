@@ -5,7 +5,7 @@ import streamlit as st
 # Importing customized functions
 from functions.style import css_hacks
 from functions.style import page_elements
-from functions.content import sticky_logo, header_builder, reliability_box_builder, sensor_image_box_builder
+from functions.content import sticky_logo, header_builder, reliability_box_builder, sensor_image_box_builder, spot_selector_builder
 
 
 # Setting the page configuration
@@ -14,6 +14,10 @@ st.set_page_config(page_title='ACOPLAST Brasil',
                    layout="wide",
                    initial_sidebar_state="collapsed"
                    )
+
+# Database connection to the data functions
+conn = st.connection("postgresql", type="sql")
+
 
 # Removing undesired streamlit elements
 css_hacks.remove_streamlit_elements()
@@ -51,8 +55,12 @@ reliability_box_builder.insert_title_and_gauge(column=body_left,
 sensor_image_box_builder.show_sensor_image(column=body_left,
                                            image_path='images/imagem_maquina.png')
 
-with body_center:
-    st.title('body center')
+spot_id_selected = spot_selector_builder.show_spot_selector(column=body_center,
+                                                            title='Pontos de Monitoramento',
+                                                            conn=conn)
+
+
+
     
 with body_right:
     st.title('body right')
