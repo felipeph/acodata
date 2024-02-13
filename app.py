@@ -59,6 +59,8 @@ spot_id_selected = spot_selector_builder.show_spot_selector(column=body_center,
                                                             title='Pontos de Monitoramento',
                                                             conn=conn)
 
+
+
 variables_from_spot_df, elapsed_time = last_record_chart_builder.variables_from_spot(conn=conn,
                                                                        spot_id=spot_id_selected,
                                                                        global_data_id_column='global_data_id',
@@ -68,6 +70,19 @@ variables_from_spot_df, elapsed_time = last_record_chart_builder.variables_from_
 with body_center:
     st.table(variables_from_spot_df)
     st.write(elapsed_time)
+
+for global_data_id in variables_from_spot_df['global_data_id']:
+    
+    last_record_df, elapsed_time = last_record_chart_builder.get_last_record(conn=conn,
+                                            spot_id=spot_id_selected,
+                                            global_data_id=global_data_id)
+    
+    with body_center:
+        st.table(last_record_df)
+        st.write(elapsed_time)
+
+
+
 
     
 with body_right:
