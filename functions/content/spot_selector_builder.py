@@ -62,6 +62,12 @@ def get_list_from_column_df(df, column):
     """
     return df[column].tolist()
 
+
+def spot_id_from_alias(df, alias, alias_column, spot_id_column):
+    return df.loc[df[alias_column] == alias, spot_id_column].iloc[0]
+
+    
+
 def show_spot_selector(column, title, conn):
     """
     Displays a spot selector.
@@ -79,16 +85,18 @@ def show_spot_selector(column, title, conn):
         insert_title(column=column, title=title)
         try:
             spots_df, elapsed_time = get_column_from_table(conn=conn,
-                                                        column='spot_id',
-                                                        table='spots')
-            spots_id_list = get_list_from_column_df(df=spots_df,
-                                                    column='spot_id')
-            spot_id_selected = create_spot_selector(column=column,
-                                                    label=title,
-                                                    options=spots_id_list)
-            with column:
-                st.write(f"Elapsed time for query: {elapsed_time:.6f} seconds")
-                st.success(f"Selected spot: {spot_id_selected}")
+                                                        column='*',
+                                                        table='alias_spots')
+            spot_name_selected = create_spot_selector(column=column,
+                                                      label=title,
+                                                      options=spots_df['alias'])
+            spot_id_selected = spot_id_from_alias(spots_df,
+                                                  alias=spot_name_selected,
+                                                  alias_column='alias',
+                                                  spot_id_column='spot_id')
+
+            st.write(f"Elapsed time for query: {elapsed_time:.6f} seconds")
+            st.success(f"Selected spot: {spot_id_selected}")
             return spot_id_selected
         except Exception as e:
             st.error(f"Error querying spots: {e}")
