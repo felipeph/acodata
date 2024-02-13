@@ -2,8 +2,6 @@ import streamlit as st
 
 import plotly.graph_objects as go
 
-import plotly.graph_objects as go
-
 def create_reliability_gauge(reliability):
     """
     Creates a reliability gauge chart.
