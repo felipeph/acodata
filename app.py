@@ -5,7 +5,7 @@ import streamlit as st
 # Importing customized functions
 from functions.style import css_hacks
 from functions.style import page_elements
-from functions.content import sticky_logo, header_builder, reliability_box_builder, sensor_image_box_builder, spot_selector_builder
+from functions.content import sticky_logo, header_builder, reliability_box_builder, sensor_image_box_builder, spot_selector_builder, last_record_chart_builder
 
 
 # Setting the page configuration
@@ -59,7 +59,15 @@ spot_id_selected = spot_selector_builder.show_spot_selector(column=body_center,
                                                             title='Pontos de Monitoramento',
                                                             conn=conn)
 
+variables_from_spot_df, elapsed_time = last_record_chart_builder.variables_from_spot(conn=conn,
+                                                                       spot_id=spot_id_selected,
+                                                                       global_data_id_column='global_data_id',
+                                                                       global_data_name_column='global_data_name',
+                                                                       column_not_null='alarm_critical')
 
+with body_center:
+    st.table(variables_from_spot_df)
+    st.write(elapsed_time)
 
     
 with body_right:
