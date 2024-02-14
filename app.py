@@ -68,8 +68,20 @@ last_record_chart_builder.show_last_record_chart(column=body_center,
 time_series_plot_builder.insert_column_title(column=body_right,
                                              spot_name_selected=spot_name_selected)
 
+col_radio_select, col_date_interval = time_series_plot_builder.make_time_selector_columns(column=body_right)
+
+time_interval_option = time_series_plot_builder.get_time_interval_option(column=col_radio_select)
+
+n_days_ago_date, now_date = time_series_plot_builder.get_default_dates(7)
+
+date_interval = time_series_plot_builder.get_date_interval(column=col_date_interval,
+                                                           time_interval_option=time_interval_option,
+                                                           default_dates=(n_days_ago_date, now_date))
 
 
 
-
+with body_right:
+    st.write(f'Intervalo de tempo selecionado: {time_interval_option}')
+    st.write(f'Datas padrão inicial para pesquisa: {n_days_ago_date, now_date}')
+    st.write(f'Datas de inicio e fim da análise: {date_interval}')
 ####################################################################
