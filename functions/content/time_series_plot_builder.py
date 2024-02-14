@@ -49,62 +49,46 @@ def get_time_interval_option(column):
                                         label_visibility="collapsed")
     return time_interval_option
 
-def get_default_dates(n_days_ago):
+    
+def get_default_dates(last_record_timestamp_datetime, n_days_ago):
     """
-    Gets the dates for the default interval.
+    Calculates the start and end dates for the default interval based on the last record timestamp.
 
     Parameters:
-    - n_days_ago (int): The number of days ago for the default interval.
+    - last_record_timestamp_datetime (datetime.datetime): The datetime object representing the timestamp of the last record.
+    - n_days_ago (int): The number of days ago from the last record for the default interval.
 
     Returns:
-    - tuple: A tuple containing the dates for the default interval.
+    - tuple: A tuple containing the start date (n days ago) and end date (last record timestamp date) for the default interval.
     """
-    br_timezone = pytz.timezone('America/Sao_Paulo')
-    now_datetime = datetime.now(br_timezone)
-    n_days_ago_datetime = now_datetime - timedelta(days=n_days_ago)
-    now_date = now_datetime.date()
-    n_days_ago_date = n_days_ago_datetime.date()
-    return n_days_ago_date, now_date
+    n_days_ago_datetime = last_record_timestamp_datetime - timedelta(days=n_days_ago)
+    last_record_timestamp_date = last_record_timestamp_datetime.date()
     
+    n_days_ago_date = n_days_ago_datetime.date()
+    return n_days_ago_date, last_record_timestamp_date
 
-def get_date_interval(column, time_interval_option, default_dates):
+
+
+def get_date_interval(column, time_interval_option, default_dates, last_record_timestamp_datetime):
     """
-    Gets the date interval selected by the user.
+    Retrieves the date interval selected by the user or defaults to a standard interval.
 
     Parameters:
     - column (streamlit.delta_generator.DeltaGenerator): The Streamlit column where the date input component will be displayed.
     - time_interval_option (str): The option selected by the user for the time interval.
     - default_dates (tuple): A tuple containing the default dates.
+    - last_record_timestamp_datetime (datetime.datetime): The datetime object representing the timestamp of the last record.
 
     Returns:
-    - tuple: A tuple containing the date interval selected by the user.
-    """    
+    - tuple: A tuple containing the start and end dates of the selected date interval.
+    """ 
     if time_interval_option == 'Personalizado':
         with column:
-            date_interval = st.date_input(label="Intervalo entre datas", value=default_dates)
+            date_interval = st.date_input(label="Intervalo entre datas", value=default_dates, max_value=default_dates[1])
     else:
-        date_interval = get_default_dates(n_days_ago=1)
+        date_interval = get_default_dates(last_record_timestamp_datetime=last_record_timestamp_datetime, 
+                                          n_days_ago=1)
     return date_interval
-        
-
-
-
-# def show_time_interval_selector(column):
-#     with column:
-#         col_radio_select, col_date_interval = st.columns(2)
-        
-#         with col_radio_select: 
-        
-#             time_interval_option = st.radio(label="Intervalo de tempo",
-#                                             options=("24 horas", "Personalizado"),
-#                                             horizontal=True,
-#                                             label_visibility="collapsed")
-            
-#             if time_interval_option == "Personalizado":
-#                 with col_date_interval:
-#                     date_interval = st.date_input(label="Intervalo entre datas", value=(days_ago_7,today))
-                    
-                    
                     
                     
                     

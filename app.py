@@ -72,16 +72,18 @@ col_radio_select, col_date_interval = time_series_plot_builder.make_time_selecto
 
 time_interval_option = time_series_plot_builder.get_time_interval_option(column=col_radio_select)
 
-n_days_ago_date, now_date = time_series_plot_builder.get_default_dates(7)
+n_days_ago_date, last_record_date = time_series_plot_builder.get_default_dates(last_record_timestamp_datetime=last_record_timestamp_datetime, 
+                                                                               n_days_ago=7)
 
 date_interval = time_series_plot_builder.get_date_interval(column=col_date_interval,
                                                            time_interval_option=time_interval_option,
-                                                           default_dates=(n_days_ago_date, now_date))
+                                                           default_dates=(n_days_ago_date, last_record_date),
+                                                           last_record_timestamp_datetime = last_record_timestamp_datetime)
 
 
 
 with body_right:
     st.write(f'Intervalo de tempo selecionado: {time_interval_option}')
-    st.write(f'Datas padrão inicial para pesquisa: {n_days_ago_date, now_date}')
+    st.write(f'Datas padrão inicial para pesquisa: {n_days_ago_date, last_record_date}')
     st.write(f'Datas de inicio e fim da análise: {date_interval}')
 ####################################################################
