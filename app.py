@@ -3,8 +3,7 @@ import streamlit as st
 
 
 # Importing customized functions
-from functions.style import css_hacks
-from functions.style import page_elements
+from functions.style import css_hacks, page_elements 
 from functions.content import sticky_logo, header_builder, reliability_box_builder, sensor_image_box_builder, spot_selector_builder, last_record_chart_builder
 
 
@@ -17,7 +16,6 @@ st.set_page_config(page_title='ACOPLAST Brasil',
 
 # Database connection to the data functions
 conn = st.connection("postgresql", type="sql")
-
 
 # Removing undesired streamlit elements
 css_hacks.remove_streamlit_elements()
@@ -59,32 +57,11 @@ spot_id_selected = spot_selector_builder.show_spot_selector(column=body_center,
                                                             title='Pontos de Monitoramento',
                                                             conn=conn)
 
+last_record_chart_builder.show_last_record_chart(column=body_center,
+                                                 conn=conn,
+                                                 spot_id_selected=spot_id_selected)
 
 
-variables_from_spot_df, elapsed_time = last_record_chart_builder.variables_from_spot(conn=conn,
-                                                                       spot_id=spot_id_selected,
-                                                                       global_data_id_column='global_data_id',
-                                                                       global_data_name_column='global_data_name',
-                                                                       column_not_null='alarm_critical')
-
-with body_center:
-    st.table(variables_from_spot_df)
-    st.write(elapsed_time)
-
-for global_data_id in variables_from_spot_df['global_data_id']:
-    
-    last_record_df, elapsed_time = last_record_chart_builder.get_last_record(conn=conn,
-                                            spot_id=spot_id_selected,
-                                            global_data_id=global_data_id)
-    
-    with body_center:
-        st.table(last_record_df)
-        st.write(elapsed_time)
-
-
-
-
-    
 with body_right:
     st.title('body right')
     
