@@ -2,6 +2,7 @@ import streamlit as st
 import time
 import pandas as pd
 import plotly.graph_objects as go
+from datetime import datetime
 
 
 def query_get_variables_from_spot(spot_id, global_data_id_column, global_data_name_column, column_not_null):
@@ -83,6 +84,7 @@ def variables_from_spot(conn, spot_id, global_data_id_column, global_data_name_c
     variables_from_spot_df, elapsed_time = run_and_time_query(conn=conn, query=query)
     return variables_from_spot_df, elapsed_time
 
+
 def get_last_record(conn, spot_id, global_data_id):
     """
     Returns the last record of a global variable from a specific spot.
@@ -101,6 +103,46 @@ def get_last_record(conn, spot_id, global_data_id):
     last_record_df, elapsed_time = run_and_time_query(conn=conn, query=query)
     last_record_df = last_record_df.dropna(axis=1)  # Remove columns with null values
     return last_record_df, elapsed_time
+
+def get_last_record_timestamp(last_record_df):
+    """
+    Retrieves the timestamp of the last record from a DataFrame and returns it as an integer.
+
+    Parameters:
+    - last_record_df (pandas.DataFrame): DataFrame containing the last record.
+
+    Returns:
+    - int: Integer representation of the timestamp of the last record.
+    """
+    last_record_timestamp = last_record_df['timestamp'].iloc[0]
+    return int(last_record_timestamp)
+
+def convert_timestamp_to_datetime(timestamp_int):
+    """
+    Converts an integer timestamp to a datetime object.
+
+    Parameters:
+    - timestamp_int (int): Integer representation of the timestamp.
+
+    Returns:
+    - datetime.datetime: Datetime object corresponding to the provided timestamp.
+    """
+    last_record_timestamp_datetime = datetime.fromtimestamp(timestamp_int)
+    return last_record_timestamp_datetime
+
+def format_datetime_to_string(timestamp_datetime):
+    """
+    Formats a datetime object into a string in the format 'YYYY-MM-DD HH:MM:SS'.
+
+    Parameters:
+    - datetime_obj (datetime.datetime): The datetime object to be formatted.
+
+    Returns:
+    - str: Formatted datetime string in the format 'YYYY-MM-DD HH:MM:SS'.
+    """
+    timestamp_formated = timestamp_datetime.strftime('%Y-%m-%d %H:%M:%S')
+    return timestamp_formated
+
 
 def query_variable_name_alarms(spot_id, global_data_id):
     """
@@ -329,7 +371,13 @@ def show_last_record_chart(column, conn, spot_id_selected):
         last_record_df, elapsed_time = get_last_record(conn=conn,
                                                        spot_id=spot_id_selected,
                                                        global_data_id=global_data_id)
+        
+        last_record_timestamp_int = get_last_record_timestamp(last_record_df=last_record_df)
 
+        last_record_timestamp_datetime = convert_timestamp_to_datetime(last_record_timestamp_int)
+
+        last_record_timestamp_formated = format_datetime_to_string(last_record_timestamp_datetime)
+        
         last_record_alarms_df = make_last_record_alarms_df(variable_name_alarms_df=variable_name_alarms_df,
                                                            last_record_df=last_record_df)
 
@@ -362,7 +410,9 @@ def show_last_record_chart(column, conn, spot_id_selected):
         with column:
             st.markdown(f"###### {variable_name}")
             st.plotly_chart(last_record_plot_fig, use_container_width=True, config = config)
+    with column:
+        st.write(f'Atualizado em: {last_record_timestamp_formated}')        
             
-    return None
+    return last_record_timestamp_int, last_record_timestamp_datetime 
     
     

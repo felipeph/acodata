@@ -57,9 +57,9 @@ spot_id_selected, spot_name_selected = spot_selector_builder.show_spot_selector(
                                                                                 title='Pontos de Monitoramento',
                                                                                 conn=conn)
 
-last_record_chart_builder.show_last_record_chart(column=body_center,
-                                                 conn=conn,
-                                                 spot_id_selected=spot_id_selected)
+last_record_timestamp_int, last_record_timestamp_datetime = last_record_chart_builder.show_last_record_chart(column=body_center,
+                                                                                                             conn=conn,
+                                                                                                             spot_id_selected=spot_id_selected)
 
 
 ################################################################################
