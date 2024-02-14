@@ -3,9 +3,8 @@ import streamlit as st
 
 
 # Importing customized functions
-from functions.style import css_hacks
-from functions.style import page_elements
-from functions.content import sticky_logo, header_builder, reliability_box_builder, sensor_image_box_builder, spot_selector_builder
+from functions.style import css_hacks, page_elements 
+from functions.content import sticky_logo, header_builder, reliability_box_builder, sensor_image_box_builder, spot_selector_builder, last_record_chart_builder
 
 
 # Setting the page configuration
@@ -17,7 +16,6 @@ st.set_page_config(page_title='ACOPLAST Brasil',
 
 # Database connection to the data functions
 conn = st.connection("postgresql", type="sql")
-
 
 # Removing undesired streamlit elements
 css_hacks.remove_streamlit_elements()
@@ -59,9 +57,11 @@ spot_id_selected = spot_selector_builder.show_spot_selector(column=body_center,
                                                             title='Pontos de Monitoramento',
                                                             conn=conn)
 
+last_record_chart_builder.show_last_record_chart(column=body_center,
+                                                 conn=conn,
+                                                 spot_id_selected=spot_id_selected)
 
 
-    
 with body_right:
     st.title('body right')
     

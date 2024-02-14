@@ -104,10 +104,11 @@ def show_spot_selector(column, title, conn):
                                                   spot_id_column='spot_id')
 
             # Display elapsed time for query and selected spot ID
-            st.write(f"Elapsed time for query: {elapsed_time:.6f} seconds")
-            st.success(f"Selected spot: {spot_id_selected}")
+            # st.write(f"Elapsed time for query: {elapsed_time:.6f} seconds")
+            # st.success(f"Selected spot: {spot_id_selected}")
             return spot_id_selected
         except Exception as e:
             # Display error message if database query fails
             st.error(f"Error querying spots: {e}")
             raise e  # Re-raise the exception to propagate it further if needed
+
