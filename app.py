@@ -4,7 +4,7 @@ import streamlit as st
 
 # Importing customized functions
 from functions.style import css_hacks, page_elements 
-from functions.content import sticky_logo, header_builder, reliability_box_builder, sensor_image_box_builder, spot_selector_builder, last_record_chart_builder
+from functions.content import sticky_logo, header_builder, reliability_box_builder, sensor_image_box_builder, spot_selector_builder, last_record_chart_builder, time_series_plot_builder
 
 
 # Setting the page configuration
@@ -53,15 +53,23 @@ reliability_box_builder.insert_title_and_gauge(column=body_left,
 sensor_image_box_builder.show_sensor_image(column=body_left,
                                            image_path='images/imagem_maquina.png')
 
-spot_id_selected = spot_selector_builder.show_spot_selector(column=body_center,
-                                                            title='Pontos de Monitoramento',
-                                                            conn=conn)
+spot_id_selected, spot_name_selected = spot_selector_builder.show_spot_selector(column=body_center,
+                                                                                title='Pontos de Monitoramento',
+                                                                                conn=conn)
 
 last_record_chart_builder.show_last_record_chart(column=body_center,
                                                  conn=conn,
                                                  spot_id_selected=spot_id_selected)
 
 
-with body_right:
-    st.title('body right')
-    
+################################################################################
+########### TIME_SERIES_PLOT_BUILDER_TESTS #####################################
+
+time_series_plot_builder.insert_column_title(column=body_right,
+                                             spot_name_selected=spot_name_selected)
+
+
+
+
+
+####################################################################
