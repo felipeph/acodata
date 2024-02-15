@@ -57,38 +57,16 @@ spot_id_selected, spot_name_selected = spot_selector_builder.show_spot_selector(
                                                                                 title='Pontos de Monitoramento',
                                                                                 conn=conn)
 
-last_record_timestamp_int, last_record_timestamp_datetime = last_record_chart_builder.show_last_record_chart(column=body_center,
-                                                                                                             conn=conn,
-                                                                                                             spot_id_selected=spot_id_selected)
+last_record_timestamp_int, last_record_timestamp_datetime, variables_from_spot_df = last_record_chart_builder.show_last_record_chart(column=body_center,
+                                                                                                                                     conn=conn,
+                                                                                                                                     spot_id_selected=spot_id_selected)
 
 
-################################################################################
-########### TIME_SERIES_PLOT_BUILDER_TESTS #####################################
 
-time_series_plot_builder.insert_column_title(column=body_right,
-                                             spot_name_selected=spot_name_selected)
-
-col_radio_select, col_date_interval = time_series_plot_builder.make_time_selector_columns(column=body_right)
-
-time_interval_option = time_series_plot_builder.get_time_interval_option(column=col_radio_select)
-
-n_days_ago_date, last_record_date = time_series_plot_builder.get_default_dates(last_record_timestamp_datetime=last_record_timestamp_datetime, 
-                                                                               n_days_ago=7)
-
-date_interval = time_series_plot_builder.get_date_interval(column=col_date_interval,
-                                                           time_interval_option=time_interval_option,
-                                                           default_dates=(n_days_ago_date, last_record_date))
-
-
-start_timestamp, end_timestamp = time_series_plot_builder.get_query_timestamps(date_interval=date_interval, 
-                                                                               last_record_timestamp_int=last_record_timestamp_int)
-
-with body_right:
-    st.write(f'Intervalo de tempo selecionado: {time_interval_option}')
-    st.write(f'Last record timestamp int: {last_record_timestamp_int}')
-    st.write(f'Datas padrão inicial para pesquisa: {n_days_ago_date, last_record_date}')
-    st.write(f'Datas de inicio e fim da análise: {date_interval}')
-    st.write(f'Start timestamp: {start_timestamp}')
-    st.write(f'End timestamp: {end_timestamp}')
-
-####################################################################
+time_series_plot_builder.show_line_plots(column=body_right,
+                                         spot_id_selected=spot_id_selected,
+                                         last_record_timestamp_datetime=last_record_timestamp_datetime,
+                                         last_record_timestamp_int=last_record_timestamp_int,
+                                         variables_from_spot_df=variables_from_spot_df,
+                                         spot_name_selected=spot_name_selected,
+                                         conn=conn)

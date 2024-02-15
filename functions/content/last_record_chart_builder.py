@@ -413,6 +413,6 @@ def show_last_record_chart(column, conn, spot_id_selected):
     with column:
         st.write(f'Atualizado em: {last_record_timestamp_formated}')        
             
-    return last_record_timestamp_int, last_record_timestamp_datetime 
+    return last_record_timestamp_int, last_record_timestamp_datetime, variables_from_spot_df 
     
     

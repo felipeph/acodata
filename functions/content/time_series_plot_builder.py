@@ -1,6 +1,8 @@
 import streamlit as st
 from datetime import datetime, timedelta
-
+import pandas as pd
+import pytz
+import plotly.express as px
 
 def insert_column_title(column, spot_name_selected):
     """
@@ -135,4 +137,259 @@ def get_timestamps_for_query(date_interval, last_record_timestamp_int):
     return start_timestamp, end_timestamp 
                     
                     
-                    
+def query_interval_timestamps(spot_id, global_data_id, start_timestamp, end_timestamp):
+    """
+    Constructs a SQL query to retrieve data from a specific spot and global data ID within a given timestamp interval.
+
+    Parameters:
+    - spot_id (int): The ID of the spot.
+    - global_data_id (int): The ID of the global data.
+    - start_timestamp (int): The start timestamp of the interval.
+    - end_timestamp (int): The end timestamp of the interval.
+
+    Returns:
+    - str: The constructed SQL query.
+    """
+    query = f"""
+            SELECT *
+            FROM spot_{spot_id}_var_{global_data_id}
+            WHERE timestamp >= {start_timestamp}
+            AND timestamp < {end_timestamp}
+            """
+    return query
+
+def df_from_query(conn, query):
+    """
+    Retrieves data from the database using the provided connection and SQL query.
+
+    Parameters:
+    - conn: The database connection object.
+    - query (str): The SQL query to execute.
+
+    Returns:
+    - pandas.DataFrame: A DataFrame containing the query results.
+    """
+    query_df = conn.query(query)
+    return query_df
+
+def convert_timestamp_column(df):
+    """
+    Converts the 'timestamp' column of a DataFrame to the correct datetime format and timezone.
+
+    Parameters:
+    - df (pandas.DataFrame): The DataFrame containing the 'timestamp' column.
+
+    Returns:
+    - pandas.DataFrame: The DataFrame with the 'timestamp' column converted.
+    """
+    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s', origin='unix')
+    brt_timezone = pytz.timezone('America/Sao_Paulo')
+    df['timestamp'] = df['timestamp'].dt.tz_localize(pytz.utc)
+    df['timestamp'] = df['timestamp'].dt.tz_convert(brt_timezone)
+    df['timestamp'] = df['timestamp'].dt.tz_localize(None)
+    return df
+
+
+def clear_empty_columns(df):
+    """
+    Removes columns from a DataFrame that contain only NaN values.
+
+    Parameters:
+    - df (pandas.DataFrame): The DataFrame to be cleaned.
+
+    Returns:
+    - pandas.DataFrame: The cleaned DataFrame.
+    """
+    clean_df = df.dropna(axis=1, how="all")
+    return clean_df
+
+def query_variable_name_alarms(spot_id, global_data_id):
+    """
+    Constructs and returns an SQL query to retrieve the alias name, critical alarm, and alert alarm
+    for a specific spot and global data ID.
+
+    Args:
+        spot_id (int): The ID of the spot.
+        global_data_id (int): The ID of the global data.
+
+    Returns:
+        str: The SQL query to retrieve the alias name, critical alarm, and alert alarm.
+    """
+    query = f"""SELECT alias_name, alarm_critical, alarm_alert
+                FROM alias_variables
+                WHERE spot_id = {spot_id}
+                  AND global_data_id = {global_data_id};"""
+    return query
+
+def get_variable_name_alarms(conn, spot_id, global_data_id):
+    """
+    Retrieves the alias name, critical alarm, and alert alarm for a specific spot and global data ID.
+
+    Args:
+        conn: The connection to the database.
+        spot_id (int): The ID of the spot.
+        global_data_id (int): The ID of the global data.
+
+    Returns:
+        DataFrame: A pandas DataFrame containing the alias name, critical alarm, and alert alarm.
+    """
+    query = query_variable_name_alarms(spot_id=spot_id, global_data_id=global_data_id)
+    variable_name_alarms_df = conn.query(query)
+    return variable_name_alarms_df
+
+
+def get_new_names(variable_data_old_header, text_alias_df):
+    """
+    Returns the new names corresponding to the values in the provided list.
+
+    Args:
+        last_record_variables_list (list): A list of values.
+        text_alias_df (DataFrame): A DataFrame with 'old_name' and 'new_name' columns.
+
+    Returns:
+        list: A list of new names corresponding to the provided values.
+    """
+    
+    last_record_df = pd.DataFrame(variable_data_old_header, columns=['old_name'])
+    
+    last_record_df['index'] = last_record_df.index  # Add numerical index to preserve original order
+    
+    merged_df = pd.merge(text_alias_df, last_record_df, on='old_name', how='inner')
+    
+    merged_df = merged_df.sort_values(by='index')  # Sort by numerical index to restore original order
+    
+    variable_data_new_header = merged_df['new_name'].tolist()
+    
+    return variable_data_new_header
+
+def get_text_alias_df(conn):
+    text_alias_df = conn.query('SELECT * FROM text_aliases')
+    return text_alias_df
+
+
+def plot_dataframe_lines(df, variable_name, alarm_alert, alarm_critical):
+    columns_list = df.columns.to_list()
+    x_column = columns_list[-1]
+    y_columns = columns_list[:-1]
+    fig = px.line(df, x=x_column, y=y_columns)
+    
+    fig.add_shape(
+        type="line",
+        x0=df[x_column].min(),
+        x1=df[x_column].max(),
+        y0=alarm_alert,
+        y1=alarm_alert,
+        line=dict(color="orange", dash="dash"),
+        name=f'Linha Constante ({alarm_alert})')
+    
+    fig.add_shape(
+        type="line",
+        x0=df[x_column].min(),
+        x1=df[x_column].max(),
+        y0=alarm_critical,
+        y1=alarm_critical,
+        line=dict(color="red", dash="dash"),
+        name=f'Linha Constante ({alarm_critical})')
+
+    fig.update_layout(legend=dict(
+        orientation="h",
+        yanchor="bottom",
+        y=1.02,
+        xanchor="right",
+        x=1,
+        title=""
+    ))
+
+    
+    fig.update_layout(
+        title=variable_name,
+        xaxis_title='Data e Hora',
+        yaxis_title=variable_name, # Trocar 
+        height=250,
+    )
+    
+    fig.update_traces(hovertemplate=None)
+
+    fig.update_layout(hovermode="x unified")
+        
+    fig.update_layout(
+        hoverlabel=dict(
+            bgcolor="white",
+            font_size=16,
+        )
+    )
+    
+    return fig
+
+def config_to_plot():
+    config = {'displayModeBar': True,
+        'displaylogo': False,
+        'modeBarButtonsToRemove': ['zoom', 'pan', 'autoScale', 'zoomIn', 'zoomOut'],
+        }
+    return config
+
+
+def show_line_plots(column, spot_name_selected, last_record_timestamp_datetime, last_record_timestamp_int, variables_from_spot_df, spot_id_selected, conn):
+    insert_column_title(column=column, spot_name_selected=spot_name_selected)
+
+    col_radio_select, col_date_interval = make_time_selector_columns(column=column)
+
+    time_interval_option = get_time_interval_option(column=col_radio_select)
+
+
+    with column:
+
+        n_days_ago_date, last_record_date = get_default_dates(last_record_timestamp_datetime=last_record_timestamp_datetime, 
+                                                              n_days_ago=7)
+
+        date_interval = get_date_interval(column=col_date_interval,
+                                          time_interval_option=time_interval_option,
+                                          default_dates=(n_days_ago_date, last_record_date))
+
+
+        start_timestamp, end_timestamp = get_timestamps_for_query(date_interval=date_interval,
+                                                                  last_record_timestamp_int=last_record_timestamp_int)
+
+        for global_data_id in variables_from_spot_df['global_data_id']:
+            query = query_interval_timestamps(spot_id=spot_id_selected,
+                                              global_data_id=global_data_id,
+                                              start_timestamp=start_timestamp,
+                                              end_timestamp=end_timestamp)
+            
+            variable_data_df = df_from_query(conn=conn, query=query)
+            
+            variable_data_df = clear_empty_columns(variable_data_df)
+            
+            variable_data_df = convert_timestamp_column(variable_data_df)
+            
+            variable_name_alarms_df = get_variable_name_alarms(conn=conn,
+                                                               spot_id=spot_id_selected,
+                                                               global_data_id= global_data_id)
+            
+            variable_name = variable_name_alarms_df['alias_name'].iloc[0]
+            
+            
+            alarm_critical = variable_name_alarms_df['alarm_critical'].iloc[0]
+            
+            alarm_alert = variable_name_alarms_df['alarm_alert'].iloc[0]
+
+            variable_data_old_header = variable_data_df.columns.tolist()
+            
+            text_alias_df = get_text_alias_df(conn=conn)
+            
+            variable_data_new_header = get_new_names(variable_data_old_header=variable_data_old_header,
+                                                     text_alias_df=text_alias_df)
+            
+            variable_data_df.columns = variable_data_new_header
+            
+            
+            fig = plot_dataframe_lines(df = variable_data_df,
+                                       variable_name=variable_name,
+                                       alarm_alert=alarm_alert,
+                                       alarm_critical=alarm_critical)
+            
+            config = config_to_plot()
+            
+            st.plotly_chart(fig, theme="streamlit", use_container_width=True, config = config)
+            
+    return None
