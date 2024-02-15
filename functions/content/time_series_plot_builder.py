@@ -1,6 +1,5 @@
 import streamlit as st
 from datetime import datetime, timedelta
-import pytz
 
 
 def insert_column_title(column, spot_name_selected):
@@ -69,7 +68,7 @@ def get_default_dates(last_record_timestamp_datetime, n_days_ago):
 
 
 
-def get_date_interval(column, time_interval_option, default_dates, last_record_timestamp_datetime):
+def get_date_interval(column, time_interval_option, default_dates):
     """
     Retrieves the date interval selected by the user or defaults to a standard interval.
 
@@ -77,7 +76,6 @@ def get_date_interval(column, time_interval_option, default_dates, last_record_t
     - column (streamlit.delta_generator.DeltaGenerator): The Streamlit column where the date input component will be displayed.
     - time_interval_option (str): The option selected by the user for the time interval.
     - default_dates (tuple): A tuple containing the default dates.
-    - last_record_timestamp_datetime (datetime.datetime): The datetime object representing the timestamp of the last record.
 
     Returns:
     - tuple: A tuple containing the start and end dates of the selected date interval.
@@ -85,11 +83,56 @@ def get_date_interval(column, time_interval_option, default_dates, last_record_t
     if time_interval_option == 'Personalizado':
         with column:
             date_interval = st.date_input(label="Intervalo entre datas", value=default_dates, max_value=default_dates[1])
+            return date_interval
+
+
+def timestamp_from_date_interval(date_interval):
+    """
+    Converts a date interval into start and end timestamps.
+
+    Parameters:
+    - date_interval (tuple): A tuple containing the start and end dates of the interval.
+
+    Returns:
+    - tuple: A tuple containing the start and end timestamps.
+    """
+    start_date_with_minutes = datetime.combine(date_interval[0], datetime.min.time())
+    start_timestamp = int(start_date_with_minutes.timestamp())
+    end_date_with_minutes = datetime.combine(date_interval[1], datetime.min.time())
+    end_timestamp = int(end_date_with_minutes.timestamp())
+    return start_timestamp, end_timestamp
+
+
+def days_to_seconds(n_days):
+    """
+    Converts a number of days into seconds.
+
+    Parameters:
+    - n_days (int): The number of days to be converted.
+
+    Returns:
+    - int: The equivalent number of seconds.
+    """
+    return n_days * 24 * 60 * 60
+
+def get_timestamps_for_query(date_interval, last_record_timestamp_int):
+    """
+    Calculates the timestamps for the query based on a date interval or the last record timestamp.
+
+    Parameters:
+    - date_interval (tuple): A tuple containing the start and end dates of the interval, or None if not provided.
+    - last_record_timestamp_int (int): The timestamp of the last record as an integer.
+
+    Returns:
+    - tuple: A tuple containing the start and end timestamps for the query.
+    """
+    if date_interval:
+        start_timestamp, end_timestamp = timestamp_from_date_interval(date_interval)
+        end_timestamp = end_timestamp + days_to_seconds(1)
     else:
-        date_interval = get_default_dates(last_record_timestamp_datetime=last_record_timestamp_datetime, 
-                                          n_days_ago=1)
-    return date_interval
-                    
+        end_timestamp = last_record_timestamp_int
+        start_timestamp = end_timestamp - days_to_seconds(1)
+    return start_timestamp, end_timestamp 
                     
                     
                     
