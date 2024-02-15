@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 import pandas as pd
 import pytz
 import plotly.express as px
-from io import BytesIO
 
 def insert_column_title(column, spot_name_selected):
     """
