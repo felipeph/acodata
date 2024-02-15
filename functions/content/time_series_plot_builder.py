@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 import pytz
 import plotly.express as px
+from io import BytesIO
 
 def insert_column_title(column, spot_name_selected):
     """
@@ -391,5 +392,14 @@ def show_line_plots(column, spot_name_selected, last_record_timestamp_datetime, 
             config = config_to_plot()
             
             st.plotly_chart(fig, theme="streamlit", use_container_width=True, config = config)
-            
+                        
+            with st.expander("Arquivo para Exportação", expanded=False):
+                st.dataframe(variable_data_df, use_container_width=True)
+                st.download_button(
+                    label="Baixar aquivo CSV",
+                    data=variable_data_df.to_csv(index=False).encode('utf-8'),
+                    file_name=f'{spot_name_selected}_{variable_name}.csv',
+                    mime='text/csv',
+                )
+
     return None
